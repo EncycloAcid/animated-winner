@@ -1400,6 +1400,8 @@ function follow(p, dt, v, reverse) {
 const PARKED = { boarding: 1, ready: 1 };
 function blockedAhead(p, dt) {
   if (p.ghost > 0) { p.ghost -= dt; return false; }
+  // never stop on a runway: a queue reaching back across it would shut it for everyone
+  if (RUNWAYS.some(r => onRunway(p, r))) { p.blocked = 0; p.blockedBy = null; return false; }
   const f = vecOf(p.h);
   for (const q of planes) {
     if (q === p || q.air || PARKED[q.state]) continue;

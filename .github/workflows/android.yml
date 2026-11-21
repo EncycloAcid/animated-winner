@@ -28,6 +28,8 @@ jobs:
           KEYSTORE_B64: ${{ secrets.CLEARWAY_KEYSTORE_B64 }}
         if: env.KEYSTORE_B64 != ''
         run: echo "$KEYSTORE_B64" | base64 -d > upload-key.jks && echo "CLEARWAY_KEYSTORE=upload-key.jks" >> "$GITHUB_ENV"
+      - name: Play-tests (a bot plays a shift at each airport)
+        run: ./gradlew testDebugUnitTest --no-daemon
       - run: ./gradlew assembleRelease --no-daemon
         env:
           CLEARWAY_KEYSTORE_PASSWORD: ${{ secrets.CLEARWAY_KEYSTORE_PASSWORD }}
@@ -37,3 +39,8 @@ jobs:
         with:
           name: clearway-tower-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: android/app/build/shots/

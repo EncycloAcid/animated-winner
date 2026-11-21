@@ -19,9 +19,24 @@ Planes taxi on the airport's real taxiways and runways from OpenStreetMap, park 
 
 ## Android app
 
-The `android/` folder is a small Android app (Kotlin, Android 8.0+) that shows the game full screen and works offline, with the font bundled. The game pauses when the app goes to the background, and Back closes a menu, lets go of the selected flight, then pauses before it leaves the app.
+The `android/` folder is a native Android app written in Kotlin (Android 8.0+). It has no WebView:
 
-The app loads the same `index.html` as the web version; the build copies it into the APK.
+- **Map:** a custom `View` draws the OpenStreetMap layers on a Canvas. The base map is painted into a bitmap on a background thread and slid and scaled while you drag, pinch or twist, then redrawn sharp when the map settles.
+- **Game:** the same rules as the web version, in Kotlin (`Tower.kt`, with the taxiway graph in `Ground.kt`).
+- **Controls:** Jetpack Compose for the score bar, the flight panel, the airport picker and the start and game-over screens. Light and dark follow the system.
+- **Data:** the airport packs are shared with the web version. The build turns `airports/<code>/*.js` into JSON in the APK's assets.
+
+The shift pauses when the app goes to the background. Back closes a menu, lets go of the selected flight, then pauses before it leaves the app.
+
+| Path | What it is |
+|---|---|
+| `android/app/src/main/java/…/MainActivity.kt` | The activity |
+| `…/TowerApp.kt` | The Compose screen: controls, flight panel, menus, start and game-over screens |
+| `…/MapView.kt` | The map view: drawing, the base-map bitmap, gestures, camera animation |
+| `…/BaseMap.kt`, `Palette.kt` | Painting the OpenStreetMap layers, light and dark colours |
+| `…/Tower.kt`, `Ground.kt` | The game, and the ground network built from the taxiways and runways |
+| `…/Airport.kt` | Loading an airport pack |
+| `android/app/src/test/…` | Play-tests under Robolectric: a bot plays a shift at each airport, and screenshots of the real screens |
 
 **Get the APK:** every push builds it in GitHub Actions. Open **Actions → Android APK → latest run** and download it under **Artifacts**. Copy it to your phone and open it; Android asks you to allow installs from that app the first time.
 
@@ -29,7 +44,8 @@ The app loads the same `index.html` as the web version; the build copies it into
 
 ```sh
 cd android
-./gradlew assembleRelease   # -> app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease      # -> app/build/outputs/apk/release/app-release.apk
+./gradlew testDebugUnitTest    # play-tests; screenshots land in app/build/shots/
 ```
 
 Without your own signing key the release build is signed with the Android debug key, so it installs for testing. To publish on Google Play, put your upload key's details in `android/keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`; never commit it), or set the `CLEARWAY_KEYSTORE*` repository secrets for the workflow.
@@ -49,6 +65,6 @@ The map is traced from [OpenStreetMap](https://www.openstreetmap.org/copyright) 
 | `airports/<code>/basemap.js` | That airport's OpenStreetMap layers, including runways and taxiways |
 | `tools/build.py` | Builds `index.html` from all of the above |
 | `tools/build_basemap.py` | Regenerates an airport's base map from OpenStreetMap |
-| `android/` | The Android app |
+| `android/` | The native Android app (Kotlin) |
 
 Edit the files in `src/` and `airports/`, then run `python3 tools/build.py`. Don't edit `index.html` by hand; it's generated.
