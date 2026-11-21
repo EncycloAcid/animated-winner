@@ -1,6 +1,8 @@
 // ---------- Active airport ----------
 const AP = AIRPORTS[ACTIVE_AIRPORT] || AIRPORTS[Object.keys(AIRPORTS)[0]];
-const MAP_BOUNDS = AP.bounds;
+const MAP_BOUNDS = { ...AP.bounds };
+// other layers (the tower game) hook in here: run after each re-layout of the overlay, and get first say on taps
+const hooks = { render: [], tap: [] };
 // Concourses in display order, each with a colour and a badge shape
 const CONS = AP.concourses.map(c => c.id);
 const gnumOf = g => parseInt(g.replace(/^\D+/, ''), 10) || 0;
@@ -392,6 +394,7 @@ function render() {
   }
   updateScaleBar();
   cullLabels();
+  for (const f of hooks.render) f();
 }
 // Gate pills that would overlap shrink to dots (lower numbers win) and come back as you zoom in;
 // area names show only where they have room.
@@ -415,7 +418,7 @@ function cullLabels() {
     blocks.push({ l: p.x - w, r: p.x + w, t: p.y - w, b: p.y + w });
   }
   // floating controls hide whatever is under them
-  const chrome = (chromeCache || (chromeCache = ['.controls', '.topbar'].map(s => $(s).getBoundingClientRect())))
+  const chrome = (chromeCache || (chromeCache = ['.controls', '.topbar', '.dock'].filter(s => $(s)).map(s => $(s).getBoundingClientRect())))
     .map(c => ({ l: c.left, r: c.right, t: c.top, b: c.bottom }));
   const offscreen = r => r.r < 0 || r.l > vw || r.b < 0 || r.t > vh;
   for (const g of areaLabels) {
@@ -478,6 +481,9 @@ function animateTo(target) {
 function visibleRect() {
   const top = $('.topbar').getBoundingClientRect().bottom + 6;
   const R = { l: 12, t: top, r: vw - 66, b: vh - 28 };
+  // a panel docked at the bottom (or on the left on wide screens) covers part of the map
+  const dock = $('.dock'), d = dock && !dock.hidden && dock.getBoundingClientRect();
+  if (d && d.height) { if (d.left < 40 && d.right > vw - 80) R.b = Math.min(R.b, d.top - 8); else R.l = Math.max(R.l, d.right + 12); }
   if (R.b - R.t < 140) R.b = R.t + 140;
   return R;
 }
@@ -511,7 +517,7 @@ let vel = { x: 0, y: 0, t: 0 }, panned = false, glide = null, lastTap = null;
 stage.addEventListener('pointerdown', e => {
   try { stage.setPointerCapture(e.pointerId); } catch (err) {}
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (ptrs.size === 1) { moved = 0; downTarget = e.target.closest('[data-gate], [data-con]'); } else downTarget = null;
+  if (ptrs.size === 1) { moved = 0; downTarget = e.target.closest('[data-plane], [data-gate], [data-con]'); } else downTarget = null;
   pinch = null; cancelAnimationFrame(anim); cancelAnimationFrame(glide); moving = false; userMoved = true;
   vel = { x: 0, y: 0, t: e.timeStamp }; panned = ptrs.size === 1;
 });
@@ -561,6 +567,7 @@ const endPtr = e => {
   if (!ptrs.size && panned && moved >= 6 && e.type === 'pointerup') { startGlide(); if (!glide || isStale()) render(); }
   if (ptrs.size || moved >= 6 || e.type !== 'pointerup') return;
   const t = downTarget;
+  for (const h of hooks.tap) if (h(t, e)) return;
   if (t && t.dataset.con) { buzz(); fitCon(t.dataset.con); return; }
   // tap a gate to zoom in on it
   if (t && t.dataset.gate) { buzz(); const q = toScr({ x: +t.dataset.x, y: +t.dataset.y }); zoomAnimAt(q.x, q.y, Math.max(1, 3 / view.k)); return; }
@@ -644,7 +651,3 @@ addEventListener('keydown', e => { if (e.key === 'Escape') { openAirports(false)
 addEventListener('resize', () => { chromeCache = null; sizeSvg(); render(); });
 fitAll(true);
 document.fonts && document.fonts.ready.then(() => { chromeCache = null; if (!userMoved) fitAll(true); else render(); });
-})();
-</script>
-</body>
-</html>

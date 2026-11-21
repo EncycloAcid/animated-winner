@@ -5,6 +5,7 @@
   airports/<code>/basemap.js   OpenStreetMap layers (tools/build_basemap.py)
   airports/<code>/airport.js   that airport's map pack: gate numbers, concourses, labels
   src/map.js                   the map (airport-independent)
+  src/sim.js                   the tower game on top of it
 
 Usage: python3 tools/build.py   (run from anywhere)
 """
@@ -19,6 +20,6 @@ for d in sorted(glob.glob(os.path.join(ROOT, 'airports', '*', ''))):
     parts.append(f'/* ---- airport: {code} (map data © OpenStreetMap contributors, ODbL) ---- */\n')
     parts.append(read(f'airports/{code}/basemap.js'))
     parts.append(read(f'airports/{code}/airport.js'))
-parts.append(read('src/map.js'))
+parts += [read('src/map.js'), read('src/sim.js')]
 open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8').write(''.join(parts))
 print('index.html', sum(len(p) for p in parts) // 1024, 'KB from', len(parts), 'parts')
