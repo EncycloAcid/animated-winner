@@ -674,6 +674,16 @@ function setPaused(on) {
 $('#pause').onclick = () => { if (game.on) { buzz(5); setPaused(!game.paused); } };
 $('#speed').onclick = () => { buzz(5); game.speed = game.speed === 1 ? 2 : 1; $('#speed').textContent = game.speed + '×'; };
 document.addEventListener('visibilitychange', () => { if (document.hidden && game.on) setPaused(true); });
+// the Android app: pause when it goes to the background, and let Back close things before leaving
+window.towerPause = () => { if (game.on) setPaused(true); };
+window.cleBack = () => {
+  if (!apMenu.hidden) { openAirports(false); return true; }
+  if (!conMenu.hidden) { fade(conMenu, false); return true; }
+  if (!overlay.hidden) return false;
+  if (selected) { select(null); return true; }
+  if (game.on && !game.paused) { setPaused(true); toast('Paused'); return true; }
+  return false;
+};
 addEventListener('keydown', e => { if (e.key === ' ' && game.on && e.target === document.body) { e.preventDefault(); setPaused(!game.paused); } });
 
 let lastT = performance.now(), uiT = 0;

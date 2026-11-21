@@ -1,0 +1,39 @@
+name: Android APK
+
+on:
+  push:
+    paths: ["index.html", "src/**", "airports/**", "tools/**", "android/**", ".github/workflows/android.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check index.html is built from src/ and airports/
+        working-directory: .
+        run: python3 tools/build.py && git diff --exit-code index.html
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+      # With an upload key stored as repository secrets the release build is signed with it;
+      # without one it's signed with a debug key, which installs fine for testing.
+      - name: Upload key
+        env:
+          KEYSTORE_B64: ${{ secrets.CLEARWAY_KEYSTORE_B64 }}
+        if: env.KEYSTORE_B64 != ''
+        run: echo "$KEYSTORE_B64" | base64 -d > upload-key.jks && echo "CLEARWAY_KEYSTORE=upload-key.jks" >> "$GITHUB_ENV"
+      - run: ./gradlew assembleRelease --no-daemon
+        env:
+          CLEARWAY_KEYSTORE_PASSWORD: ${{ secrets.CLEARWAY_KEYSTORE_PASSWORD }}
+          CLEARWAY_KEY_ALIAS: ${{ secrets.CLEARWAY_KEY_ALIAS }}
+          CLEARWAY_KEY_PASSWORD: ${{ secrets.CLEARWAY_KEY_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clearway-tower-apk
+          path: android/app/build/outputs/apk/release/app-release.apk

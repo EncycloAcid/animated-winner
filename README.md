@@ -17,6 +17,23 @@ An air traffic control game played on real airport maps: Cleveland Hopkins (CLE)
 
 Planes taxi on the airport's real taxiways and runways from OpenStreetMap, park at the real gates, and use the aircraft silhouette from the map.
 
+## Android app
+
+The `android/` folder is a small Android app (Kotlin, Android 8.0+) that shows the game full screen and works offline, with the font bundled. The game pauses when the app goes to the background, and Back closes a menu, lets go of the selected flight, then pauses before it leaves the app.
+
+The app loads the same `index.html` as the web version; the build copies it into the APK.
+
+**Get the APK:** every push builds it in GitHub Actions. Open **Actions → Android APK → latest run** and download it under **Artifacts**. Copy it to your phone and open it; Android asks you to allow installs from that app the first time.
+
+**Build it yourself** (JDK 17+ and the Android SDK; Android Studio installs both):
+
+```sh
+cd android
+./gradlew assembleRelease   # -> app/build/outputs/apk/release/app-release.apk
+```
+
+Without your own signing key the release build is signed with the Android debug key, so it installs for testing. To publish on Google Play, put your upload key's details in `android/keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`; never commit it), or set the `CLEARWAY_KEYSTORE*` repository secrets for the workflow.
+
 ## The map
 
 The map is traced from [OpenStreetMap](https://www.openstreetmap.org/copyright) and is © OpenStreetMap contributors, available under the Open Database License. This is a game, not an official airport map or real procedures.
@@ -32,5 +49,6 @@ The map is traced from [OpenStreetMap](https://www.openstreetmap.org/copyright) 
 | `airports/<code>/basemap.js` | That airport's OpenStreetMap layers, including runways and taxiways |
 | `tools/build.py` | Builds `index.html` from all of the above |
 | `tools/build_basemap.py` | Regenerates an airport's base map from OpenStreetMap |
+| `android/` | The Android app |
 
 Edit the files in `src/` and `airports/`, then run `python3 tools/build.py`. Don't edit `index.html` by hand; it's generated.

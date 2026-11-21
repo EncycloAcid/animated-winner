@@ -1,0 +1,9 @@
+<resources>
+    <!-- Light theme: the WebView reports prefers-color-scheme: light. -->
+    <style name="Theme.ClearwayTower" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/map_light</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:colorAccent">@color/primary</item>
+    </style>
+</resources>

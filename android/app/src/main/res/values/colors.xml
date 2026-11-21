@@ -1,0 +1,7 @@
+<resources>
+    <color name="sign">#1C252B</color>
+    <color name="primary">#2F50D0</color>
+    <color name="icon_bg">#FFFFFF</color>
+    <color name="map_light">#ECEFF3</color>
+    <color name="map_dark">#14171C</color>
+</resources>
