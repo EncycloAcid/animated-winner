@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clearway Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght@8..144,25..151,100..1000&display=swap">
+<style>
+/* Layout: a full-bleed airport map with floating glass controls. Nothing else. */
+:root {
+  --map: #eef1ec; --corridor: #e2e8f2; --stairs: #95a1b2; --grass: #d4e9cb; --wood: #c2ddb7; --water: #b3d3f3; --apron-pave: #e5e7eb; --taxi: #dadde3; --taxi-line: #e6c14a; --runway: #c6cad2; --runway-mark: #ffffff; --road-case: #d3d8de; --road-fill: #ffffff; --mway-case: #e8c574; --mway-fill: #fdeab4; --rail: #aeb6c0; --lot: #e8eaee; --other-bldg: #dfe2e7; --term-closed: #ebecef; --bldg: #ffffff; --bldg-edge: #bfc8d4; --road: #d6dce3; --walk: #d3d9e0; --bldg-shadow: rgba(30, 45, 80, .2); --plane: #c9d0d9; --bridge: #c3ccd6; --garage: #dde1e7; --con-tint: .13;
+  --hall-up: #dcf1eb; --hall-up-edge: #86c6b4; --hall-up-text: #2f8a74; --hall-lo: #fbefd8; --hall-lo-edge: #e2ba6c; --hall-lo-text: #a8761c; --curb: #eceef2; --zebra: #ffffff; --glass: #8fb6e6; --counter: #5d6b85; --carousel: #d5dbe6; --carousel-belt: #7d8799; --door: #2f50d0;
+  --glass: rgba(250, 250, 252, .96); --sheet-bg: #f7f7fa; --glass-hi: rgba(255, 255, 255, .55); --hairline: rgba(60, 60, 67, .16);
+  --card: rgba(255, 255, 255, .92); --solid: #fbfbfd; --fill: rgba(118, 118, 128, .12); --fill-2: rgba(118, 118, 128, .2);
+  --label: #101318; --label-2: rgba(60, 60, 67, .64); --label-3: rgba(60, 60, 67, .34);
+  --shadow: 0 10px 30px rgba(16, 24, 40, .14), 0 1px 3px rgba(16, 24, 40, .08);
+  --primary: #2f50d0; --on-primary: #ffffff; --primary-c: #dee3ff; --on-primary-c: #0c1a66;
+  --brand: #2f50d0; --on-brand: #ffffff;
+  --route: #2f50d0; --route-case: #ffffff;
+  --conA: #64798a; --conB: #2563d8; --conC: #7a4cd6;
+  --font-display: "Roboto Flex", "Google Sans", Roboto, system-ui, sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Roboto Flex", Roboto, "Segoe UI", sans-serif;
+  --spring: cubic-bezier(.2, 1.35, .35, 1);
+  --spring-slow: cubic-bezier(.25, 1.15, .4, 1);
+  --safe-top: var(--sat, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--sab, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--sal, env(safe-area-inset-left, 0px));
+  --safe-right: var(--sar, env(safe-area-inset-right, 0px));
+  color-scheme: light;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --spring: linear(0, .013 1%, .053 2.1%, .212 4.6%, .742 11.6%, .95 15%, 1.054 18.6%, 1.104 22.3%, 1.112 24.6%, 1.1 27.4%, 1.034 34.6%, .998 41.2%, .989 46.9%, .996 59.5%, 1.001 72.5%, 1);
+    --spring-slow: linear(0, .009 1.4%, .037 2.9%, .146 6%, .53 14.1%, .793 20.5%, .953 26.9%, 1.033 33.3%, 1.059 38.9%, 1.054 44.6%, 1.012 58.3%, .997 72%, 1);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --map: #111513; --corridor: #3d4656; --stairs: #7a8696; --grass: #172519; --wood: #1a2b1d; --water: #12263b; --apron-pave: #181b20; --taxi: #20242a; --taxi-line: #8a7323; --runway: #2a2f37; --runway-mark: #575e69; --road-case: #22272e; --road-fill: #2d333b; --mway-case: #4d4024; --mway-fill: #5e5030; --rail: #3f4650; --lot: #1b1f24; --other-bldg: #22262d; --term-closed: #1e2228; --bldg: #2f3540; --bldg-edge: #4a5262; --road: #2a3038; --walk: #3a424d; --bldg-shadow: rgba(0, 0, 0, .55); --plane: #2c333d; --bridge: #434c59; --garage: #1c2026; --con-tint: .2; --hall-up: #1d3833; --hall-up-edge: #3b7768; --hall-up-text: #79c2ae; --hall-lo: #3a3021; --hall-lo-edge: #7d6535; --hall-lo-text: #d4a656; --curb: #2a2f37; --zebra: #8e97a5; --glass: #4f74a8; --counter: #9aa7c0; --carousel: #3a4458; --carousel-belt: #8d97ab; --door: #7d97ff;
+    --glass: rgba(34, 34, 38, .95); --sheet-bg: #1d1d21; --glass-hi: rgba(255, 255, 255, .07); --hairline: rgba(84, 84, 88, .55);
+    --card: rgba(44, 44, 48, .88); --solid: #242428; --fill: rgba(118, 118, 128, .24); --fill-2: rgba(118, 118, 128, .34);
+    --label: #f3f4f8; --label-2: rgba(235, 235, 245, .62); --label-3: rgba(235, 235, 245, .3);
+    --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .4);
+    --primary: #a9b8ff; --on-primary: #0f1f6e; --primary-c: #24358c; --on-primary-c: #e0e5ff;
+    --brand: #3c5ee6; --on-brand: #ffffff;
+    --route: #5b7cff; --route-case: #0c0f13;
+    --conA: #93a6b4; --conB: #5f97f2; --conC: #a989ee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --map: #111513; --corridor: #3d4656; --stairs: #7a8696; --grass: #172519; --wood: #1a2b1d; --water: #12263b; --apron-pave: #181b20; --taxi: #20242a; --taxi-line: #8a7323; --runway: #2a2f37; --runway-mark: #575e69; --road-case: #22272e; --road-fill: #2d333b; --mway-case: #4d4024; --mway-fill: #5e5030; --rail: #3f4650; --lot: #1b1f24; --other-bldg: #22262d; --term-closed: #1e2228; --bldg: #2f3540; --bldg-edge: #4a5262; --road: #2a3038; --walk: #3a424d; --bldg-shadow: rgba(0, 0, 0, .55); --plane: #2c333d; --bridge: #434c59; --garage: #1c2026; --con-tint: .2; --hall-up: #1d3833; --hall-up-edge: #3b7768; --hall-up-text: #79c2ae; --hall-lo: #3a3021; --hall-lo-edge: #7d6535; --hall-lo-text: #d4a656; --curb: #2a2f37; --zebra: #8e97a5; --glass: #4f74a8; --counter: #9aa7c0; --carousel: #3a4458; --carousel-belt: #8d97ab; --door: #7d97ff;
+  --glass: rgba(34, 34, 38, .95); --sheet-bg: #1d1d21; --glass-hi: rgba(255, 255, 255, .07); --hairline: rgba(84, 84, 88, .55);
+  --card: rgba(44, 44, 48, .88); --solid: #242428; --fill: rgba(118, 118, 128, .24); --fill-2: rgba(118, 118, 128, .34);
+  --label: #f3f4f8; --label-2: rgba(235, 235, 245, .62); --label-3: rgba(235, 235, 245, .3);
+  --shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .4);
+  --primary: #a9b8ff; --on-primary: #0f1f6e; --primary-c: #24358c; --on-primary-c: #e0e5ff;
+  --brand: #3c5ee6; --on-brand: #ffffff;
+    --route: #5b7cff; --route-case: #0c0f13;
+  --conA: #93a6b4; --conB: #5f97f2; --conC: #a989ee;
+  color-scheme: dark;
+}
+
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; background: var(--map); color: var(--label);
+  font: 16px/1.35 var(--font-text); letter-spacing: -.01em; -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.glass { background: var(--glass); box-shadow: var(--shadow), inset 0 1px 0 var(--glass-hi); border: .5px solid var(--hairline); }
+
+/* ---------- Map ---------- */
+#stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
+#base, #baseFade, svg#map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#baseFade { pointer-events: none; opacity: 0; }
+#baseFade.out { animation: floor-fade .32s ease-out both; }
+@keyframes floor-fade { from { opacity: 1; } to { opacity: 0; } }
+#map.floor-in .mk { animation: mk-in .35s ease-out both; }
+@keyframes mk-in { from { opacity: 0; } }
+svg#map { overflow: visible; transform-origin: 0 0; will-change: transform; touch-action: none; }
+#map .zs { transform-origin: 0 0; scale: var(--zs, 1); rotate: var(--zr, 0deg); }
+.apron { fill: none; pointer-events: all; }
+#map text { text-rendering: geometricPrecision; }
+.area-lbl[data-off] { display: none; }
+.map-lbl { font: 650 8.5px var(--font-display); fill: var(--label-2); letter-spacing: .08em; text-transform: uppercase; }
+.con-letter { font: 800 14px var(--font-display); font-variation-settings: "wdth" 110; fill: #fff; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.mk { cursor: pointer; transition: opacity .3s ease; }
+.mk .pop { transition: transform .45s var(--spring); transform-box: fill-box; transform-origin: center; }
+@media (hover: hover) { #map .mk:hover .pop { transform: scale(1.3); } }
+/* gate numbers: a pill in the concourse colour; pills that would overlap shrink to dots until you zoom in */
+.gate .pill { stroke: var(--bldg); stroke-width: 1; }
+.gate .drop { fill: rgba(20, 30, 50, .22); }
+.gate text { font: 700 6.6px var(--font-display); font-variation-settings: "wdth" 85; fill: #fff; text-anchor: middle; dominant-baseline: central; pointer-events: none; transition: opacity .2s; }
+.gate[data-dot] .pop { transform: scale(.42); }
+.gate[data-dot] text { opacity: 0; }
+.gate[data-dot] .pill { x: -5.5px; width: 11px; }
+.gate[data-dot="hide"] { opacity: 0 !important; pointer-events: none; }
+#map[data-floor="lo"] .gate { opacity: .35; }
+
+/* ---------- Airport name (tap to switch airport) ---------- */
+.topbar { position: fixed; z-index: 5; top: calc(var(--safe-top) + 12px); left: calc(var(--safe-left) + 16px); right: calc(var(--safe-right) + 76px); pointer-events: none; }
+.topbar > * { pointer-events: auto; }
+.ap-btn { display: inline-flex; max-width: 100%; height: 44px; align-items: center; gap: 10px; padding: 0 16px 0 6px; border-radius: 22px; font-weight: 650; }
+.ap-btn .ap-code { flex: none; padding: 4px 10px; border-radius: 16px; background: var(--brand); color: var(--on-brand); font: 800 14px var(--font-display); font-variation-settings: "wdth" 110; }
+.ap-btn .ap-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ap-btn::after { flex: none; content: "⌄"; font-weight: 800; color: var(--label-2); margin-top: -6px; }
+.ap-btn:active { transform: scale(.97); }
+.ap-menu { position: absolute; top: 52px; left: 0; width: min(340px, calc(100vw - 32px)); border-radius: 20px; padding: 6px 0; background: var(--solid); transform-origin: 40px 0; }
+.ap-menu button { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; width: 100%; padding: 10px 16px; border: 0; background: none; text-align: left; }
+.ap-menu button:hover, .ap-menu button:focus-visible { background: var(--fill); }
+.ap-menu .code { font: 800 17px var(--font-display); font-variation-settings: "wdth" 110; color: var(--primary); }
+.ap-menu .s { display: block; font-size: 13px; color: var(--label-2); }
+
+/* ---------- Popovers ---------- */
+.layers, .ap-menu { animation: pop-in .42s var(--spring) both; }
+.leaving { animation: pop-out .16s ease-in both !important; pointer-events: none; }
+@keyframes pop-in { from { opacity: 0; transform: scale(.9) translateY(-6px); } }
+@keyframes pop-out { to { opacity: 0; transform: scale(.96) translateY(-4px); } }
+.layers button, .ap-menu button { animation: row-in .38s var(--spring-slow) both; animation-delay: calc(var(--n, 0) * 22ms); }
+@keyframes row-in { from { opacity: 0; transform: translateY(-5px); } }
+.layers { position: fixed; z-index: 6; right: calc(var(--safe-right) + 72px); width: min(270px, calc(100% - 104px)); border-radius: 20px; padding: 6px 0; background: var(--solid); transform-origin: calc(100% + 30px) 22px; }
+.layers .lh { padding: 8px 16px 4px; font-size: 13px; font-weight: 600; color: var(--label-2); }
+.layers button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 16px; border: 0; background: none; text-align: left; font-weight: 600; }
+.layers button:hover { background: var(--fill); }
+.con-menu { max-height: 70vh; overflow: auto; }
+.con-menu button .badge { width: 26px; height: 26px; }
+.con-menu button .s { margin-left: auto; font-size: 13px; font-weight: 500; color: var(--label-2); }
+.badge text { font: 800 11px var(--font-display); fill: #fff; text-anchor: middle; dominant-baseline: central; }
+#conBtn .ico { width: 22px; height: 22px; }
+@media (pointer: coarse) { .fine-only { display: none !important; } }
+
+/* ---------- Floors ---------- */
+.floor { position: relative; }
+.floor::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 44px; background: var(--brand);
+  transform: translateY(calc(var(--i, 0) * 100%)); transition: transform .45s var(--spring); }
+.floor button { position: relative; font: 800 16px var(--font-display); color: var(--label-2); transition: color .25s, transform .35s var(--spring); }
+.floor button[aria-pressed="true"] { color: var(--on-brand); }
+.floor button:active { transform: scale(.88); }
+.toast-bar { position: fixed; z-index: 5; left: 50%; translate: -50% 0; top: calc(var(--safe-top) + 64px); max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 18px; font-size: 14px; font-weight: 600; animation: pop-in .42s var(--spring) both; transform-origin: 50% 0; }
+
+/* ---------- Scale bar (shows while zooming) ---------- */
+.scalebar {
+  position: fixed; z-index: 4; left: calc(var(--safe-left) + 18px); bottom: calc(var(--safe-bottom) + 34px);
+  display: flex; flex-direction: column; gap: 2px; pointer-events: none;
+  font: 700 11px var(--font-text); color: var(--label); opacity: 0; transition: opacity .35s ease;
+  text-shadow: 0 0 3px var(--map), 0 0 3px var(--map);
+}
+.scalebar.show { opacity: 1; transition-duration: .1s; }
+.scalebar .bar { height: 5px; border: 2px solid var(--label); border-top: 0; border-radius: 0 0 2px 2px; box-shadow: 0 1px 0 var(--map); transition: width .15s; }
+.attrib { position: fixed; z-index: 4; left: calc(var(--safe-left) + 12px); bottom: calc(var(--safe-bottom) + 8px); margin: 0; font-size: 11px; color: var(--label-2); text-shadow: 0 0 3px var(--map), 0 0 3px var(--map); }
+.attrib a { color: inherit; }
+
+/* ---------- Map controls (right capsules) ---------- */
+.controls { position: fixed; z-index: 4; right: calc(var(--safe-right) + 16px); top: calc(var(--safe-top) + 12px); display: flex; flex-direction: column; gap: 10px; }
+.cap { display: flex; flex-direction: column; border-radius: 22px; overflow: hidden; }
+.cap button { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; color: var(--label); transition: transform .35s var(--spring); }
+.cap button:active { transform: scale(.86); }
+.cap button + button { border-top: .5px solid var(--hairline); }
+.cap .shape-btn svg { width: 28px; height: 28px; }
+/* compass: appears once the map is turned; tap to put north back up */
+.compass { position: absolute; top: 0; right: calc(100% + 10px); width: 44px; height: 44px; border-radius: 50%; padding: 0;
+  display: grid; place-items: center; color: var(--label); transition: transform .35s var(--spring); }
+.compass:not([hidden]):not(.leaving) { animation: compass-in .5s var(--spring) both; }
+@keyframes compass-in { from { opacity: 0; transform: scale(.5) rotate(-40deg); } }
+.compass:active { transform: scale(.86); }
+.compass svg { width: 40px; height: 40px; overflow: visible; }
+.compass .ticks { stroke: var(--label-3); stroke-width: 1.3; stroke-linecap: round; }
+.compass .tip { fill: #e5484d; }
+.compass .n { fill: #e5484d; font: 800 13.5px/1 var(--font-display); text-anchor: middle; dominant-baseline: middle; }
+.compass .s { fill: var(--label-3); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-gate" viewBox="0 0 24 24"><path d="M3 15.5l8-2.5V6a1.5 1.5 0 0 1 3 0v7l8 2.5M11 13v5l-2.5 2h7L13 18v-5"/></symbol>
+</svg>
+
+<div id="stage">
+<canvas id="base" aria-hidden="true"></canvas>
+<canvas id="baseFade" aria-hidden="true"></canvas>
+<svg id="map" role="img" aria-label="Airport map">
+  <g id="world">
+    <rect x="-3000" y="-3000" width="7000" height="7000" class="apron"/>
+  </g>
+</svg>
+</div>
+
+<div class="topbar">
+  <button class="ap-btn glass" id="apBtn" aria-haspopup="menu" aria-expanded="false"><span class="ap-code" id="apCode"></span><span class="ap-name" id="apName"></span></button>
+  <div class="ap-menu glass" id="apMenu" role="menu" hidden></div>
+</div>
+<div class="toast-bar glass" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="scalebar" id="scalebar" aria-hidden="true"><span class="txt"></span><span class="bar"></span></div>
+<p class="attrib">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</p>
+
+<div class="controls">
+  <button id="compass" class="compass glass" aria-label="Turn the map north up" hidden><svg viewBox="-22 -22 44 44" aria-hidden="true"><g class="dial"><g class="ticks"><path d="M8.50 -14.72L7.30 -12.64"/><path d="M14.72 -8.50L12.64 -7.30"/><path d="M17.00 -0.00L13.80 -0.00"/><path d="M14.72 8.50L12.64 7.30"/><path d="M8.50 14.72L7.30 12.64"/><path d="M0.00 17.00L0.00 13.80"/><path d="M-8.50 14.72L-7.30 12.64"/><path d="M-14.72 8.50L-12.64 7.30"/><path d="M-17.00 0.00L-13.80 0.00"/><path d="M-14.72 -8.50L-12.64 -7.30"/><path d="M-8.50 -14.72L-7.30 -12.64"/></g><path class="tip" d="M0 -20.6L3.4 -15.2H-3.4Z"/><text class="n" y="-2.6">N</text><path class="s" d="M0 20.6L3.4 15.2H-3.4Z"/></g></svg></button>
+  <div class="cap glass floor" id="floorCap" role="group" aria-label="Floor">
+    <button data-floor="up" aria-pressed="true">U</button>
+    <button data-floor="lo" aria-pressed="false">L</button>
+  </div>
+  <div class="cap glass">
+    <button id="zin" class="fine-only" aria-label="Zoom in"><svg class="ico"><use href="#i-plus"/></svg></button>
+    <button id="zout" class="fine-only" aria-label="Zoom out"><svg class="ico"><use href="#i-minus"/></svg></button>
+    <button id="zfit" aria-label="Show whole airport"><svg class="ico"><use href="#i-fit"/></svg></button>
+  </div>
+  <div class="cap glass" id="conCap"></div>
+</div>
+<div class="layers glass con-menu" id="conMenu" role="menu" aria-label="Concourses" hidden></div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+// Airport packs register themselves here (see airports/*/airport.js); the last one picked is remembered
+const AIRPORTS = {};
+const ACTIVE_AIRPORT = (() => { try { return localStorage.getItem('cw.airport') || 'CLE'; } catch (e) { return 'CLE'; } })();
