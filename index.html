@@ -1243,8 +1243,8 @@ const STAND_LIST = Object.values(STANDS).filter(s => s.node >= 0);
 }
 
 // ---------- Drawing aircraft ----------
+// aircraft go on top of the gate numbers and concourse badges: they're what you're controlling
 const layerAc = el('g', { class: 'ac-layer' });
-world.insertBefore(layerAc, layerGates);
 const layerTop = el('g', { class: 'tag-layer' });
 const selRoute = el('path', { class: 'sel-route', d: '', 'vector-effect': 'non-scaling-stroke' }, layerTop);
 const rwLabels = ENDS.map(e => {
@@ -1257,7 +1257,8 @@ const rwLabels = ENDS.map(e => {
 });
 let acF = 1, tagS = 1;
 function sizeAircraft() {
-  acF = Math.max(1, 24 / (38 * view.k));        // real size, or a narrowbody at least 24 px long (the others in proportion)
+  // real size, gently enlarged when zoomed far out so a narrowbody stays about 13 px long (the others in proportion)
+  acF = Math.hypot(1, 13 / (38 * view.k));
   tagS = 1.9 / view.k;                            // tags and runway names stay a readable size on screen
   const r = committed ? -committed.r / deg : 0;
   for (const l of rwLabels) l.g.setAttribute('transform', `translate(${l.p.x} ${l.p.y})${r ? ` rotate(${r})` : ''} scale(${tagS})`);

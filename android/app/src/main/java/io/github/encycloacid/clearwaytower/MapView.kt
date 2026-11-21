@@ -293,32 +293,12 @@ class MapView(context: Context) : View(context) {
             c.drawText(text, px, py, areaText)
         }
 
-        // aircraft (below the gate numbers, like the web version)
-        // real size, or a narrowbody at least 24 dp long (the others in proportion)
-        val acF = max(1f, 24f / (38f * kc)); val sc = acF * k
+        // aircraft sizes; they're drawn over the gate numbers and badges, below
+        // real size, gently enlarged when zoomed far out so a narrowbody stays about 13 dp long (the others in proportion)
+        val acF = hypot(1f, 13f / (38f * kc)); val sc = acF * k
         val rdeg = Math.toDegrees(r.toDouble()).toFloat()
         val now = SystemClock.uptimeMillis()
         val blink = .45f + .55f * (.5f + .5f * cos(now / 1000f * 2 * PI.toFloat()))
-        if (tw != null) for (p in tw.planes) {
-            val px = sx(p.x.toFloat(), p.y.toFloat()); val py = sy(p.x.toFloat(), p.y.toFloat())
-            if (px < -200 || py < -200 || px > width + 200 || py > height + 200) continue
-            val m = Aircraft.get(p.type)
-            if (p.air) {
-                val o = 5.5f * sc
-                c.save(); c.translate(px + o, py + o * 1.4f); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
-                fill.color = pal.acShadow; c.drawPath(m.silhouette, fill); c.restore()
-            }
-            c.save(); c.translate(px, py); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
-            val sel = tw.selected === p; val halo = m.size * .62f
-            if (sel || p.needsYou) {
-                fill.color = if (sel) pal.route else pal.acNeed; fill.alpha = (255 * .22f).toInt(); c.drawCircle(0f, 0f, halo, fill); fill.alpha = 255
-                if (sel) { line.color = pal.route; line.strokeWidth = 2 * d / sc; line.pathEffect = null; c.drawCircle(0f, 0f, halo, line) }
-            }
-            val color = when { p.urgent -> pal.no; p.air -> pal.acAir; p.dep -> pal.acDep; else -> pal.acGround }
-            m.draw(c, color, pal.bldg, d / sc, if (p.urgent) blink else 1f, fill, line)
-            c.restore()
-        }
-
         // gate pills; while choosing a gate, free ones pulse and taken ones step back
         val picking = tw?.picking == true
         val pulse = 1 + .25f * (.5f - .5f * cos(now / 1200f * 2 * PI.toFloat()))
@@ -351,6 +331,27 @@ class MapView(context: Context) : View(context) {
             val con = a.concourse(rd.con) ?: continue
             c.save(); c.translate(px, py); c.scale(s * 1.25f, s * 1.25f); fill.color = pal.con(con); c.drawPath(con.shape, fill); c.restore()
             gateText.textSize = 14 * s; c.drawText(rd.con, px, py + 14 * s * .36f, gateText)
+        }
+
+        // aircraft, on top of the gate numbers and badges: they're what you're controlling
+        if (tw != null) for (p in tw.planes) {
+            val px = sx(p.x.toFloat(), p.y.toFloat()); val py = sy(p.x.toFloat(), p.y.toFloat())
+            if (px < -200 || py < -200 || px > width + 200 || py > height + 200) continue
+            val m = Aircraft.get(p.type)
+            if (p.air) {
+                val o = 5.5f * sc
+                c.save(); c.translate(px + o, py + o * 1.4f); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
+                fill.color = pal.acShadow; c.drawPath(m.silhouette, fill); c.restore()
+            }
+            c.save(); c.translate(px, py); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
+            val sel = tw.selected === p; val halo = m.size * .62f
+            if (sel || p.needsYou) {
+                fill.color = if (sel) pal.route else pal.acNeed; fill.alpha = (255 * .22f).toInt(); c.drawCircle(0f, 0f, halo, fill); fill.alpha = 255
+                if (sel) { line.color = pal.route; line.strokeWidth = 2 * d / sc; line.pathEffect = null; c.drawCircle(0f, 0f, halo, line) }
+            }
+            val color = when { p.urgent -> pal.no; p.air -> pal.acAir; p.dep -> pal.acDep; else -> pal.acGround }
+            m.draw(c, color, pal.bldg, d / sc, if (p.urgent) blink else 1f, fill, line)
+            c.restore()
         }
 
         val u = 1.9f * d                                    // tags and runway numbers keep their size on screen
