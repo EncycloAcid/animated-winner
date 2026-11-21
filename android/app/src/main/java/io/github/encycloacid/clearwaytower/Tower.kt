@@ -22,7 +22,7 @@ enum class St { INBOUND, HOLDING, MISSED, APPROACH, FINAL, ROLLOUT, VACATED, TAX
 /** a stand: where a plane parks at a gate, nose to the terminal, and the taxiway node it pushes back to */
 class Stand(val code: String, val x: Double, val y: Double, val a: Double, val push: P, val node: Int) { var plane: Plane? = null }
 
-class Plane(val id: Int, val cs: String, var dep: Boolean) {
+class Plane(val id: Int, val cs: String, var dep: Boolean, val type: String = "narrow") {
     var x = 0.0; var y = 0.0; var h = 0.0; var v = 0.0
     var air = false; var landed = false
     var state = St.INBOUND
@@ -81,7 +81,7 @@ class Tower(val ap: Airport, val base: BaseMap, private val best: Int, private v
         holdR = half + 350; spawnR = half + 1700
         // what "show the whole airport" fits: the terminals and runways
         airportBounds = android.graphics.RectF(xs.min().toFloat() - 150, ys.min().toFloat() - 150, xs.max().toFloat() + 150, ys.max().toFloat() + 150)
-        val m = (holdR + 380).toFloat()
+        val m = (spawnR + 200).toFloat()   // room to see arrivals as they come in
         playBounds = android.graphics.RectF(cx.toFloat() - m, cy.toFloat() - m, cx.toFloat() + m, cy.toFloat() + m)
     }
 
@@ -102,7 +102,7 @@ class Tower(val ap: Airport, val base: BaseMap, private val best: Int, private v
     }
     private fun rand(a: Double, b: Double) = a + Random.nextDouble() * (b - a)
 
-    private fun make(dep: Boolean, x: Double, y: Double, h: Double) = Plane(nextId++, callsign(), dep).also { it.x = x; it.y = y; it.h = h; planes.add(it) }
+    private fun make(dep: Boolean, x: Double, y: Double, h: Double) = Plane(nextId++, callsign(), dep, Aircraft.pick(Random.nextDouble())).also { it.x = x; it.y = y; it.h = h; planes.add(it) }
     private fun remove(p: Plane) {
         planes.remove(p); p.stand?.let { if (it.plane === p) it.plane = null }
         if (selected === p) selected = null

@@ -26,6 +26,7 @@ class BaseMap(private val ap: Airport) {
     }
     /** parked aircraft that aren't on one of the game's stands */
     @Volatile var parked: List<FloatArray> = ap.parked
+    private val parkedPlane = Path(Aircraft.get("narrow").silhouette).apply { fillType = Path.FillType.WINDING }
 
     private val fillP = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val strokeP = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
@@ -68,10 +69,10 @@ class BaseMap(private val ap: Airport) {
         stroke("rail", pal.rail, 2.2f, floatArrayOf(6f, 4f))
         fill("buildings", pal.otherBldg); stroke("buildings", pal.bldgEdge, hair(.6f))
         fill("garage", pal.garage); stroke("garage", pal.bldgEdge, hair(.8f))
-        // parked aircraft, roughly 33 m long
+        // parked aircraft: the narrowbody model, in one colour
         fillP.color = pal.plane
         for (p in parked) {
-            c.save(); c.translate(p[0], p[1]); c.rotate(p[2]); c.scale(2.1f, 2.1f); c.drawPath(Airport.PLANE, fillP); c.restore()
+            c.save(); c.translate(p[0], p[1]); c.rotate(p[2]); c.drawPath(parkedPlane, fillP); c.restore()
         }
         // terminals raised on a soft shadow (falling down the screen whichever way the map is turned)
         val terms = listOf("termM") + ap.conIds.map { "term$it" } + ap.closedTerms

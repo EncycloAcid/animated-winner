@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -488,7 +489,8 @@ private fun Modifier.glass(tk: Tok, r: Dp) = this.clip(RoundedCornerShape(r)).ba
 
 /** small line icons, drawn on a 24-unit grid like the web version's SVG symbols */
 @Composable fun Glyph(name: String, color: Color, size: Dp) {
-    val plane = remember { Airport.PLANE.asComposePath() }
+    val ctx = LocalContext.current
+    val plane = remember { Aircraft.load(ctx.applicationContext); Aircraft.get("narrow").silhouette.asComposePath() }
     Canvas(Modifier.size(size)) {
         val u = this.size.minDimension / 24f
         val st = Stroke(2f * u, cap = StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
@@ -502,7 +504,7 @@ private fun Modifier.glass(tk: Tok, r: Dp) = this.clip(RoundedCornerShape(r)).ba
             "x" -> { drawPath(p(6f, 6f, 18f, 18f), color, style = st); drawPath(p(18f, 6f, 6f, 18f), color, style = st) }
             "check" -> drawPath(p(5f, 12.5f, 9.5f, 17f, 19f, 7.5f), color, style = st)
             "chev" -> drawPath(p(6f, 9f, 12f, 15f, 18f, 9f), color, style = Stroke(2.6f * u, cap = StrokeCap.Round))
-            "plane" -> translate(12 * u, 12 * u) { scale(1.3f * u, 1.3f * u, Offset.Zero) { drawPath(plane, color) } }
+            "plane" -> translate(12 * u, 12 * u) { scale(.55f * u, .55f * u, Offset.Zero) { drawPath(plane, color) } }
         }
     }
 }

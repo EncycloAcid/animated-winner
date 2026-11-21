@@ -15,7 +15,7 @@ An air traffic control game played on real airport maps: Cleveland Hopkins (CLE)
 - Traffic picks up the longer your shift lasts. Use the panel to see who's waiting on you, most urgent first, and the **1× / 2×** and pause buttons to set the pace.
 - Tap the airport name to switch airports. Each airport keeps its own best score.
 
-Planes taxi on the airport's real taxiways and runways from OpenStreetMap, park at the real gates, and use the aircraft silhouette from the map.
+Planes taxi on the airport's real taxiways and runways from OpenStreetMap and park at the real gates. Traffic is a mix of regional jets, narrowbodies and widebodies, drawn from above at their real sizes and flat-shaded in the plane's status colour: blue in the air, grey once landed, orange for departures, red when fuel is low.
 
 ## Android app
 
@@ -35,7 +35,7 @@ The shift pauses when the app goes to the background. Back closes a menu, lets g
 | `…/MapView.kt` | The map view: drawing, the base-map bitmap, gestures, camera animation |
 | `…/BaseMap.kt`, `Palette.kt` | Painting the OpenStreetMap layers, light and dark colours |
 | `…/Tower.kt`, `Ground.kt` | The game, and the ground network built from the taxiways and runways |
-| `…/Airport.kt` | Loading an airport pack |
+| `…/Airport.kt`, `Aircraft.kt` | Loading an airport pack, and the aircraft models |
 | `android/app/src/test/…` | Play-tests under Robolectric: a bot plays a shift at each airport, and screenshots of the real screens |
 
 **Get the APK:** every push builds it in GitHub Actions. Open **Actions → Android APK → latest run** and download it under **Artifacts**. Copy it to your phone and open it; Android asks you to allow installs from that app the first time.
@@ -61,10 +61,12 @@ The map is traced from [OpenStreetMap](https://www.openstreetmap.org/copyright) 
 | `src/shell.html` | Page markup, styles and the script prelude |
 | `src/map.js` | The map: base map, gate numbers, zoom/pan/rotate, airport picker (works for any airport) |
 | `src/sim.js` | The tower game: ground network, runways, aircraft, commands, scoring |
+| `src/aircraft.json` | The aircraft models seen from above, shared with the Android app |
 | `airports/<code>/airport.js` | One airport's pack: bounds, concourses, gate numbers, parking stands, labels |
 | `airports/<code>/basemap.js` | That airport's OpenStreetMap layers, including runways and taxiways |
 | `tools/build.py` | Builds `index.html` from all of the above |
 | `tools/build_basemap.py` | Regenerates an airport's base map from OpenStreetMap |
+| `tools/aircraft.py` | Makes `src/aircraft.json`: the regional jet, narrowbody and widebody models |
 | `android/` | The native Android app (Kotlin) |
 
 Edit the files in `src/` and `airports/`, then run `python3 tools/build.py`. Don't edit `index.html` by hand; it's generated.

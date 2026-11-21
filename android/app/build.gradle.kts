@@ -84,10 +84,11 @@ val exportAirports by tasks.registering {
     val src = rootProject.file("../airports")
     val out = layout.buildDirectory.dir("generated/airportAssets/airports")
     inputs.dir(src)
-    outputs.dir(out)
+    inputs.file(rootProject.file("../src/aircraft.json"))
+    outputs.dir(layout.buildDirectory.dir("generated/airportAssets"))
     doLast {
         val dir = out.get().asFile
-        dir.deleteRecursively(); dir.mkdirs()
+        dir.parentFile.deleteRecursively(); dir.mkdirs()
         val field = Regex("^  (\\w+): (.*),$")
         src.listFiles()!!.filter { it.isDirectory }.sortedBy { it.name }.forEach { d ->
             val base = d.resolve("basemap.js").readText()
@@ -97,6 +98,8 @@ val exportAirports by tasks.registering {
             }
             dir.resolve("${d.name}.json").writeText("{\"basemap\": $baseJson,\n" + fields.joinToString(",\n") + "}")
         }
+        // the aircraft models (tools/aircraft.py)
+        rootProject.file("../src/aircraft.json").copyTo(dir.parentFile.resolve("aircraft.json"), overwrite = true)
     }
 }
 tasks.named("preBuild") { dependsOn(exportAirports) }

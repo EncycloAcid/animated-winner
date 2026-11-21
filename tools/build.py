@@ -2,6 +2,7 @@
 """Assemble index.html from the map sources and every airport pack.
 
   src/shell.html               page markup, styles and the script prelude
+  src/aircraft.json            aircraft models seen from above (tools/aircraft.py)
   airports/<code>/basemap.js   OpenStreetMap layers (tools/build_basemap.py)
   airports/<code>/airport.js   that airport's map pack: gate numbers, concourses, labels
   src/map.js                   the map (airport-independent)
@@ -15,6 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 read = lambda p: open(os.path.join(ROOT, p), encoding='utf-8').read()
 
 parts = [read('src/shell.html')]
+parts.append('// aircraft models (tools/aircraft.py)\nconst AIRCRAFT = ' + read('src/aircraft.json').replace('\n', '') + ';\n')
 for d in sorted(glob.glob(os.path.join(ROOT, 'airports', '*', ''))):
     code = os.path.basename(os.path.dirname(d))
     parts.append(f'/* ---- airport: {code} (map data © OpenStreetMap contributors, ODbL) ---- */\n')

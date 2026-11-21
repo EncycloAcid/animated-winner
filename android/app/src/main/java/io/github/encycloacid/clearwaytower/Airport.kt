@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
-import androidx.core.graphics.PathParser
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.cos
@@ -58,6 +57,7 @@ class Airport(
         }
 
         fun load(ctx: Context, code: String): Airport {
+            Aircraft.load(ctx)
             val j = JSONObject(ctx.assets.open("airports/${code.lowercase()}.json").bufferedReader().use { it.readText() })
             val b = j.getJSONObject("bounds")
             val base = j.getJSONObject("basemap")
@@ -117,10 +117,6 @@ class Airport(
             p.close(); return p
         }
 
-        /** the aircraft silhouette used on the map, nose up, 16 units long */
-        val PLANE: Path by lazy {
-            PathParser.createPathFromPathData("M0 -8C1 -8 1.3 -6.5 1.3 -5L1.3 -1.5L8 2L8 3.4L1.3 1.6L1.1 5.2L3 6.6L3 7.6L0 7L-3 7.6L-3 6.6L-1.1 5.2L-1.3 1.6L-8 3.4L-8 2L-1.3 -1.5L-1.3 -5C-1.3 -6.5 -1 -8 0 -8Z")
-        }
     }
 }
 

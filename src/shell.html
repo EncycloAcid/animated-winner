@@ -114,16 +114,25 @@ svg#map { overflow: visible; transform-origin: 0 0; will-change: transform; touc
 
 /* ---------- Aircraft ---------- */
 .ac { cursor: pointer; }
-.ac .fuse { fill: var(--ac-ground); stroke: var(--bldg); stroke-width: .7; stroke-linejoin: round; }
-.ac.dep .fuse { fill: var(--ac-dep); }
-.ac.air .fuse { fill: var(--ac-air); }
+/* each plane takes its status colour (landed, departing, flying, short of fuel) and is shaded from it */
+.ac { --c: var(--ac-ground); }
+.ac.dep { --c: var(--ac-dep); }
+.ac.air { --c: var(--ac-air); }
+.ac.warn { --c: var(--no); }
+.ac .wing { fill: var(--c); }
+.ac .eng { fill: color-mix(in srgb, var(--c) 84%, #000); }
+.ac .fuse { fill: color-mix(in srgb, var(--c) 78%, #fff); }
+.ac .hl { fill: #fff; opacity: .22; }
+.ac .fin { fill: color-mix(in srgb, var(--c) 70%, #000); }
+.ac .intake, .ac .win { fill: #1b2433; opacity: .72; }
+.ac .outline { fill: none; stroke: var(--bldg); stroke-linejoin: round; }
 .ac .shadow { fill: var(--ac-shadow); display: none; }
 .ac.air .shadow { display: block; }
 .ac .hit { fill: transparent; }
 .ac .halo { fill: none; stroke: none; }
 .ac.need .halo { fill: color-mix(in srgb, var(--ac-need) 22%, transparent); }
-.ac.sel .halo { fill: color-mix(in srgb, var(--route) 22%, transparent); stroke: var(--route); stroke-width: 1.2; }
-.ac.warn .fuse { fill: var(--no); animation: warn 1s ease-in-out infinite; }
+.ac.sel .halo { fill: color-mix(in srgb, var(--route) 22%, transparent); stroke: var(--route); }
+.ac.warn .parts, .ac.warn .outline { animation: warn 1s ease-in-out infinite; }
 @keyframes warn { 50% { opacity: .45; } }
 .tag { cursor: pointer; }
 .tag rect { fill: var(--solid); stroke: var(--hairline); stroke-width: .5; }

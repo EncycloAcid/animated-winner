@@ -77,8 +77,8 @@ const B = AP.basemap;
 const baseCanvas = $('#base'), bctx = baseCanvas.getContext('2d', { alpha: false });
 const P2 = {};
 for (const k in B) if (typeof B[k] === 'string' && B[k]) P2[k] = new Path2D(B[k]);
-const PLANE_D = 'M0 -8C1 -8 1.3 -6.5 1.3 -5L1.3 -1.5L8 2L8 3.4L1.3 1.6L1.1 5.2L3 6.6L3 7.6L0 7L-3 7.6L-3 6.6L-1.1 5.2L-1.3 1.6L-8 3.4L-8 2L-1.3 -1.5L-1.3 -5C-1.3 -6.5 -1 -8 0 -8Z';
-const planePath = new Path2D(PLANE_D);
+// parked aircraft: the narrowbody model (tools/aircraft.py), in one colour
+const parkedPlane = new Path2D(AIRCRAFT.narrow.wing + AIRCRAFT.narrow.eng + AIRCRAFT.narrow.fuse);
 const HALLS = AP.halls, HALL_PATH = {}, HALL_CURB = {};
 if (HALLS) for (const [f, key] of [['up', 'tix'], ['lo', 'bag']]) {
   const p = new Path2D(); HALLS[key].forEach(([x, y], i) => i ? p.lineTo(x, y) : p.moveTo(x, y)); p.closePath(); HALL_PATH[f] = p;
@@ -217,10 +217,10 @@ function paintBase(c, cw, ch, tx, ty, k, rot = 0) {
   stroke('rail', pal.rail, 2.2, [6, 4]);
   fill('buildings', pal['other-bldg']); stroke('buildings', pal['bldg-edge'], .6 / Math.max(k, .5));
   fill('garage', pal.garage); stroke('garage', pal['bldg-edge'], .8 / Math.max(k, .5));
-  // parked aircraft, roughly 33 m long
+  // parked aircraft
   c.fillStyle = pal.plane;
   for (const [x, y, a] of B.planes) {
-    c.save(); c.translate(x, y); c.rotate(a * Math.PI / 180); c.scale(2.1, 2.1); c.fill(planePath); c.restore();
+    c.save(); c.translate(x, y); c.rotate(a * Math.PI / 180); c.fill(parkedPlane, 'nonzero'); c.restore();
   }
   // terminals raised on a soft shadow; concourses tinted by their colour
   // (the shadow falls down the screen whichever way the map is turned)

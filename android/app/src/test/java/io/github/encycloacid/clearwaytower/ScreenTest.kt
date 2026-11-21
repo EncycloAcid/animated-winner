@@ -50,7 +50,7 @@ class ScreenTest {
         shot("${name}_play")
         println("$name waiting: ${t.waiting.map { it.cs + " " + it.state }}; quiet text nodes: " + rule.onAllNodesWithText("All quiet", substring = true).fetchSemanticsNodes().size)
         rule.runOnUiThread {
-            val p = t.waiting.firstOrNull() ?: t.planes.firstOrNull { it.air } ?: t.planes.first()
+            val p = t.planes.firstOrNull { !it.air && it.needsYou } ?: t.planes.firstOrNull { !it.air } ?: t.planes.first()
             g.select(p); g.map.centerOn(p.x, p.y)
         }
         settle(2500)

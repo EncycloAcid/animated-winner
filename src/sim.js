@@ -181,7 +181,7 @@ const STAND_LIST = Object.values(STANDS).filter(s => s.node >= 0);
   const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
   const half = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / 2;
   var AREA = { x: cx, y: cy, hold: half + 350, spawn: half + 1700 };
-  const m = AREA.hold + 380;
+  const m = AREA.spawn + 200;   // room to see arrivals as they come in
   Object.assign(MAP_BOUNDS, { x0: cx - m, y0: cy - m, x1: cx + m, y1: cy + m });
 }
 
@@ -198,9 +198,9 @@ const rwLabels = ENDS.map(e => {
   el('text', { y: .4 }, z).textContent = e.name;
   return { g, p };
 });
-let acK = 2.1, tagS = 1;
+let acF = 1, tagS = 1;
 function sizeAircraft() {
-  acK = Math.max(2.1, 22 / (16 * view.k));      // real size (~34 m) or at least 22 px long
+  acF = Math.max(1, 24 / (38 * view.k));        // real size, or a narrowbody at least 24 px long (the others in proportion)
   tagS = 1.9 / view.k;                            // tags and runway names stay a readable size on screen
   const r = committed ? -committed.r / deg : 0;
   for (const l of rwLabels) l.g.setAttribute('transform', `translate(${l.p.x} ${l.p.y})${r ? ` rotate(${r})` : ''} scale(${tagS})`);
@@ -215,15 +215,21 @@ const game = { on: false, paused: false, speed: 1, t: 0, score: 0, strikes: 0, h
 function callsign() {
   for (;;) { const c = NAMES[Math.floor(Math.random() * NAMES.length)] + ' ' + Math.floor(rand(10, 990)); if (!planes.some(p => p.cs === c)) return c; }
 }
+// a mix of regional jets, narrowbodies and widebodies
+const pickType = () => { const r = Math.random(); return r < .3 ? 'regional' : r < .86 ? 'narrow' : 'wide'; };
 function makePlane(kind, at, h) {
-  const p = { id: String(nextId++), cs: callsign(), kind, x: at.x, y: at.y, h, v: 0, air: false, state: '', path: [], pi: 0, fuel: 0, t: 0, wait: 0, blocked: 0, ghost: 0 };
+  const type = pickType(), m = AIRCRAFT[type];
+  const p = { id: String(nextId++), cs: callsign(), kind, type, size: Math.max(m.len, m.span), x: at.x, y: at.y, h, v: 0, air: false, state: '', path: [], pi: 0, fuel: 0, t: 0, wait: 0, blocked: 0, ghost: 0 };
   const g = el('g', { class: 'ac', 'data-plane': p.id }, layerAc);
   const zs = el('g', { class: 'zs-s' }, g);
-  p.shadowEl = el('path', { class: 'shadow', d: PLANE_D }, zs);
+  // the model, seen from above: a shadow when it's flying, a thin outline, then flat-shaded parts
+  p.shadowEl = el('path', { class: 'shadow', d: m.wing + m.eng + m.fuse }, zs);
   p.bodyEl = el('g', {}, zs);
-  el('circle', { class: 'halo', r: 12 }, p.bodyEl);
-  el('circle', { class: 'hit', r: 13 }, p.bodyEl);
-  el('path', { class: 'fuse', d: PLANE_D }, p.bodyEl);
+  p.haloEl = el('circle', { class: 'halo', r: p.size * .62 }, p.bodyEl);
+  el('circle', { class: 'hit', r: p.size * .62 }, p.bodyEl);
+  p.lineEl = el('path', { class: 'outline', d: m.wing + m.eng + m.fuse }, p.bodyEl);
+  const parts = el('g', { class: 'parts' }, p.bodyEl);
+  for (const k of ['wing', 'eng', 'intake', 'fuse', 'hl', 'fin', 'win']) el('path', { class: k, d: m[k] }, parts);
   const tag = el('g', { class: 'tag', 'data-plane': p.id }, layerTop), tz = el('g', { class: 'zs' }, tag);
   p.tagRect = el('rect', { y: -6.5, height: 13, rx: 4 }, tz);
   p.tagCs = el('text', { class: 'cs', y: -1.6 }, tz);
@@ -494,16 +500,21 @@ function drawPlanes() {
   const r = committed ? -committed.r / deg : 0;
   for (const p of planes) {
     p.el.setAttribute('transform', `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`);
-    if (p.drawnH !== p.h || p.drawnK !== acK) {
-      p.drawnH = p.h; p.drawnK = acK;
-      p.bodyEl.setAttribute('transform', `rotate(${p.h.toFixed(1)}) scale(${acK.toFixed(3)})`);
-      const o = acK * 2.6;
-      p.shadowEl.setAttribute('transform', `translate(${o} ${o * 1.4}) rotate(${p.h.toFixed(1)}) scale(${acK.toFixed(3)})`);
+    if (p.drawnH !== p.h || p.drawnK !== acF) {
+      if (p.drawnK !== acF) {
+        // hairlines stay about the same on screen whatever the zoom
+        const px = 1 / (acF * view.k);
+        p.lineEl.setAttribute('stroke-width', (1.6 * px).toFixed(3)); p.haloEl.setAttribute('stroke-width', (2 * px).toFixed(3));
+      }
+      p.drawnH = p.h; p.drawnK = acF;
+      p.bodyEl.setAttribute('transform', `rotate(${p.h.toFixed(1)}) scale(${acF.toFixed(3)})`);
+      const o = acF * 5.5;
+      p.shadowEl.setAttribute('transform', `translate(${o} ${o * 1.4}) rotate(${p.h.toFixed(1)}) scale(${acF.toFixed(3)})`);
     }
     const cls = 'ac ' + (p.air ? 'air ' : '') + p.kind + (selected === p ? ' sel' : '') + (urgent(p) ? ' warn' : '') + (NEEDS[p.state] ? ' need' : '');
     if (p.cls !== cls) { p.cls = cls; p.el.setAttribute('class', cls); p.tagEl.setAttribute('class', cls.replace(/^ac/, 'tag')); }
     // the tag sits beside the plane, upright
-    const off = 8 * acK / tagS + 3;
+    const off = p.size * .45 * acF / tagS + 3;
     p.tagEl.setAttribute('transform', `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})${r ? ` rotate(${r})` : ''} scale(${tagS})`);
     const [short] = statusOf(p), st = NEEDS[p.state] && p.fuel > 0 && !p.landed ? mmss(p.fuel) + ' fuel' : short;
     const key = p.cs + '|' + st + '|' + off.toFixed(1);

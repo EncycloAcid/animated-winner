@@ -294,28 +294,28 @@ class MapView(context: Context) : View(context) {
         }
 
         // aircraft (below the gate numbers, like the web version)
-        val acK = max(2.1f, 22f / (16f * kc)); val sc = acK * k
+        // real size, or a narrowbody at least 24 dp long (the others in proportion)
+        val acF = max(1f, 24f / (38f * kc)); val sc = acF * k
         val rdeg = Math.toDegrees(r.toDouble()).toFloat()
         val now = SystemClock.uptimeMillis()
         val blink = .45f + .55f * (.5f + .5f * cos(now / 1000f * 2 * PI.toFloat()))
         if (tw != null) for (p in tw.planes) {
             val px = sx(p.x.toFloat(), p.y.toFloat()); val py = sy(p.x.toFloat(), p.y.toFloat())
             if (px < -200 || py < -200 || px > width + 200 || py > height + 200) continue
+            val m = Aircraft.get(p.type)
             if (p.air) {
-                val o = acK * 2.6f * k
+                val o = 5.5f * sc
                 c.save(); c.translate(px + o, py + o * 1.4f); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
-                fill.color = pal.acShadow; c.drawPath(Airport.PLANE, fill); c.restore()
+                fill.color = pal.acShadow; c.drawPath(m.silhouette, fill); c.restore()
             }
             c.save(); c.translate(px, py); c.rotate(p.h.toFloat() + rdeg); c.scale(sc, sc)
-            val sel = tw.selected === p
+            val sel = tw.selected === p; val halo = m.size * .62f
             if (sel || p.needsYou) {
-                fill.color = if (sel) pal.route else pal.acNeed; fill.alpha = (255 * .22f).toInt(); c.drawCircle(0f, 0f, 12f, fill); fill.alpha = 255
-                if (sel) { line.color = pal.route; line.strokeWidth = 1.2f; line.pathEffect = null; c.drawCircle(0f, 0f, 12f, line) }
+                fill.color = if (sel) pal.route else pal.acNeed; fill.alpha = (255 * .22f).toInt(); c.drawCircle(0f, 0f, halo, fill); fill.alpha = 255
+                if (sel) { line.color = pal.route; line.strokeWidth = 2 * d / sc; line.pathEffect = null; c.drawCircle(0f, 0f, halo, line) }
             }
-            fill.color = when { p.urgent -> pal.no; p.air -> pal.acAir; p.dep -> pal.acDep; else -> pal.acGround }
-            if (p.urgent) fill.alpha = (255 * blink).toInt()
-            c.drawPath(Airport.PLANE, fill); fill.alpha = 255
-            line.color = pal.bldg; line.strokeWidth = .7f; line.pathEffect = null; c.drawPath(Airport.PLANE, line)
+            val color = when { p.urgent -> pal.no; p.air -> pal.acAir; p.dep -> pal.acDep; else -> pal.acGround }
+            m.draw(c, color, pal.bldg, d / sc, if (p.urgent) blink else 1f, fill, line)
             c.restore()
         }
 
@@ -378,7 +378,7 @@ class MapView(context: Context) : View(context) {
                 val px = sx(p.x.toFloat(), p.y.toFloat()); val py = sy(p.x.toFloat(), p.y.toFloat())
                 if (px < -300 || py < -100 || px > width + 50 || py > height + 100) continue
                 val st = if (p.needsYou && !p.landed && p.fuel > 0) mmss(p.fuel) + " fuel" else tw.status(p).first
-                val off = 8 * sc + 3 * u
+                val off = Aircraft.get(p.type).size * .45f * sc + 3 * u
                 val w = max(tagText.measureText(p.cs), tagSub.measureText(st)) + 7 * u
                 val box = RectF(px + off, py - 6.5f * u, px + off + w, py + 6.5f * u)
                 val sel = tw.selected === p
